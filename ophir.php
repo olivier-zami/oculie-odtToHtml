@@ -69,7 +69,17 @@ function odt2html($odt_file, $xml_string=NULL) {
   $xml = new XMLReader();
 
   if ($xml_string===NULL){
-    if (@$xml->open('zip://'.$odt_file.'#content.xml') === FALSE) {
+      if(!file_exists($odt_file))throw new \Exception("File \"".$odt_file."\"cannot be found.");
+      $zip = new \ZipArchive;
+      $content = NULL;
+      if ($zip->open($odt_file) === TRUE)
+      {
+          $content = $zip->getFromName('content.xml');
+          $zip->close();
+      } else {
+          echo 'échec';
+      }
+      if (isset($content) && @$xml->xml($content) === FALSE) {
       ophir_error("Unable to read file contents.");
       return false;
     }
