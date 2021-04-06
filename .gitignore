@@ -1,5 +1,16 @@
 /*
 !/.gitignore
-!/README.md
 #
+!/library
+/library/*
+
+!/library/Implementation
+/library/Implementation/*
+
+!/library/Implementation/Behavioral
+/library/Implementation/Behavioral/*
+
+!/library/Implementation/Behavioral/Parser
+/library/Implementation/Behavioral/Parser/*
+
 !/library/Implementation/Behavioral/Parser/XML.php
