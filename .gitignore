@@ -1,1 +1,9 @@
-
+/*
+!/.gitignore
+!/README.md
+!/AUTHORS
+!/composer.json
+!/file_upload.php
+!/LICENSE
+!/OdtToXml.php
+!/ophir.php
