@@ -1,6 +1,17 @@
+#first ignore all
 /*
+
+#then allow branch source
 !/.gitignore
-#
+!/LICENSE
+!/AUTHORS
+!/README.md
+!/composer.json
+!/file_upload.php
+!/OdtToXml.php
+!/ophir.php
+
+#finally allow required core source
 !/library
 /library/*
 
@@ -14,3 +25,4 @@
 /library/Implementation/Behavioral/Parser/*
 
 !/library/Implementation/Behavioral/Parser/XML.php
+
