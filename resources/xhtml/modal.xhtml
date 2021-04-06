@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xml:lang="fr" lang="fr">
+    <head>
+        <title></title>
+		<style type="text/css">
+			div.ocl_modal
+			{
+				position: absolute;
+				top: 0px; left: 0px;
+				
+				width: 100%; height: 100%;
+				background-color: rgba(80, 80, 80, 0.75);
+			}
+			
+			div.ocl_modal>section
+			{
+				position: absolute;
+				top: 50%; left: 50%;
+				
+				width: 1024px; height: 800px;
+				margin: -400px 0px 0px -512px;
+				background-color: #FFFFFF;
+			}
+		</style>
+		<script type="text/javascript" src="/.resources/js/oculie.js"></script>
+		<script type="text/javascript">
+			oculie.registerClass("ocl_modal", function(){
+				var dom = arguments[0];
+				dom.addEventListener("click", function(){dom.style.display="none";});
+				var t = document.evaluate("section[1]", dom);
+				let o; while(o = t.iterateNext())
+				{
+					o.addEventListener("click", function(){arguments[0].stopPropagation()});
+				}
+			});			
+			oculie.start();
+		</script>
+    </head>
+    <body>
+		<div class="ocl_modal">
+			<section>
+			</section>
+		</div>
+    </body>
+</html>

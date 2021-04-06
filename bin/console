@@ -1,0 +1,192 @@
+#!/usr/bin/env php
+<?php
+if (PHP_SAPI !== 'cli') {
+    echo 'bin/console must be run as a CLI application';
+    exit(1);
+}
+
+if($argv[1]=="install" && $argv[2]=="--light" && file_exists("D:\\src\\oculie\\core\\Action\\install_light.php"))
+{
+	$argv[3] = realpath(__DIR__."/../src/oculie");
+	include("D:\\src\\oculie\\core\\Action\\install_light.php");
+}
+else "\nAucune Action effectuée\n\n";
+
+die("\ndie in ".__FILE__." @ line ".__LINE__);
+
+/*
+try {
+    require __DIR__ . '/../app/bootstrap.php';
+} catch (\Exception $e) {
+    echo 'Autoload error: ' . $e->getMessage();
+    exit(1);
+}
+try {
+    $handler = new \Magento\Framework\App\ErrorHandler();
+    set_error_handler([$handler, 'handler']);
+    $application = new Magento\Framework\Console\Cli('Magento CLI');
+    $application->run();
+} catch (\Exception $e) {
+    while ($e) {
+        echo $e->getMessage();
+        echo $e->getTraceAsString();
+        echo "\n\n";
+        $e = $e->getPrevious();
+    }
+    exit(Magento\Framework\Console\Cli::RETURN_FAILURE);
+}
+*/
+
+/*
+$command = new Dashboard\Controller\CommandProcessor\Magento2ClearCache();
+$command->execute(Oculie\Device\Screen::getCommandLine());
+Oculie\load("/app/controller/command/clear-cache.php");
+*/
+
+$command = [];
+$destinationDirectory = getcwd();
+$localDirectory = realpath(__DIR__."/..");
+
+//echo "\n";
+
+for($i=0; $i<count($argv); $i++)
+{
+	if(strstr($argv[$i], "--set-config-system-file"))
+	{
+		for($i; $i<$argc; $i++)
+		{
+			echo "\n".$argv[$i];
+		}
+	}
+}
+
+if(file_exists(__DIR__ . "/../oculie.php")&&file_exists(__DIR__."/../autoload.php")&&file_exists(__DIR__."/../core/Action/_init.php"))//TODO: verifier si on est dans le cas de figure par defaut (library) si verifier configuration systeme
+{
+	require_once(__DIR__ . "/../oculie.php");
+	require_once(__DIR__."/../autoload.php");
+	require_once(__DIR__."/../core/Action/_init.php");//TODO: faire en sorte que _init.php charge tout les process
+}
+else//TODO chercher le fichier de configuration systeme et charget le tout
+{
+	require_once(__DIR__."/../src/oculie/oculie.php");
+	require_once(__DIR__."/../src/oculie/autoload.php");
+}
+
+
+if(isset($argv[1])&&$argv[1]=="create-conf")//TODO: finir la commande(process)
+{
+	if(!is_dir($destinationConfDirectory))mkdir($destinationConfDirectory, 0777, TRUE);
+	file_put_contents($destinationConfDirectory."/system.xml", "<system><type>application</type></system>");
+}
+else
+{
+	$destinationConfDirectory = $destinationDirectory."/conf";
+	if(!file_exists($destinationConfDirectory."/system.xml"))die("fichier system.xml introuvable");
+}
+
+
+//echo "\nchargement des variables projet";
+$project = [];
+$doc = new DomDocument();
+$doc->loadXML(file_get_contents(__DIR__."/../conf/system.xml"));//fichier obligatoire (fichier source)
+$project["subject-type"] = $doc->getElementsByTagName("type")->item(0)->textContent;
+//echo "\ntype du sujet (projet activé): ".$project["subject-type"];
+
+$globalConfDirectory = "conf";
+if(!is_dir($dir = $destinationDirectory."/".$globalConfDirectory))mkdir($dir, 0777, TRUE);
+if(!file_exists($dir."/system.xml")) file_put_contents($dir."/system.xml", "<system><type>application</type></system>");
+$doc = new DomDocument();
+$doc->loadXML(file_get_contents($dir."/system.xml"));//fichier obligatoire (fichier source)
+$project["object-type"] = $doc->getElementsByTagName("type")->item(0)->textContent;
+//echo "\ntype de l'objet (projet modifié): ".$project["object-type"];
+
+//echo "\n\n--------------------------\n";
+
+//!***marche seulement dans le cas de la bibliothèque ici presente***
+$command["local"]["rootDirectory"] = $localDirectory;
+$command["local"]["binDirectory"] = $localDirectory."/bin"; 
+$command["local"]["srcDirectory"] = $localDirectory;
+$command["local"]["coreDirectory"] = $localDirectory."/core";
+//!******
+$command["object"]["type"] = $project["object-type"];
+$command["object"]["rootDirectory"] = $destinationDirectory;
+$command["object"]["binDirectory"] = $destinationDirectory."/bin";
+$command["object"]["srcDirectory"] = $destinationDirectory."/src/oculie";
+$command["object"]["coreDirectory"] = $command["object"]["srcDirectory"]."/core";
+
+$command["core"]["functionDirectory"] = "Action";
+$command["core"]["mvcControllerDirectory"] = "architecture/mvc/controller";
+
+$request = Oculie\Server::getRequest();
+
+/**
+* check $request type
+*/
+if(!is_subclass_of($request, Oculie\Definition\DTO::class)) throw new Exception("\nla methode ".__METHOD__." prend des objets de type DTO en parametre.");
+
+/**
+*
+*/
+
+switch($project["object-type"])
+{
+	case "application":
+		if($project["subject-type"]=="library" && isset($argv[1]) && strtolower($argv[1])=="install" && isset($argv[2]) && strtolower($argv[2])=="--light")
+			install_light(json_decode(json_encode($command)));
+		elseif(($destinationDirectory == $localDirectory) && $project["object-type"]=="application" && (isset($argv[1])&&strtolower($argv[1])=="clear-cache"))//TODO: generer le code dynamiquement en fonction des confs
+		{
+			/**
+			* @description: Suppression du cache Magento2
+			*/
+			Dashboard::execute($request);//or Dashboard\Controller\CommandProcessor::execute() /*extends Oculie\Core\Processor\CommandProcessor::execute()*/; or $command = new Dashboard\Controller\CommandLine\ClearCache() /*extends Oculie\Process*/; command->execute();
+		}
+		elseif(($destinationDirectory == $localDirectory))
+			show_help(json_decode(json_encode($command)));
+		break;
+	case "library":
+		echo "\non ne touche pas aux librarie pour le moment";
+		break;
+	default:
+		echo "\nexecution de la commande : ".implode(" ", $argv);
+		break;
+}
+
+echo "\n\n";
+die();
+
+/*************************************************************************************************************************************************************************************************/
+/*************************************************************************************************************************************************************************************************/
+/*************************************************************************************************************************************************************************************************/
+
+function install_light($command)
+{
+	//!verification + maj de l'arbo	
+	echo "\ninstallation legere dans le repertoire ".getcwd()." (Oui/Non) ? : O";
+	copy($command->local->srcDirectory."/oculie.php", $command->object->srcDirectory."/oculie.php");
+	copy($command->local->binDirectory."/console", $command->object->binDirectory."/console");
+	foreach(scandir($command->local->coreDirectory."/".$command->core->functionDirectory) as $fileName)//verifier la derniere version du fichier (utiliser git)
+	{
+		if(in_array($fileName, [".", ".."]))continue;
+		if(!is_dir($dir=$command->object->coreDirectory."/".$command->core->functionDirectory))mkdir($dir, 0777, TRUE);
+		copy($command->local->coreDirectory."/".$command->core->functionDirectory."/".$fileName, $command->object->coreDirectory."/".$command->core->functionDirectory."/".$fileName);
+	}
+	
+	$srcAutoload = getSrcAutoload($command);
+	file_put_contents($command->object->srcDirectory."/"."autoload.php", $srcAutoload);
+	
+	$objectDir = $command->object->srcDirectory."/".$command->core->mvcControllerDirectory;
+	if(!is_dir($objectDir))mkdir($objectDir, 0777, TRUE);
+	copy($command->local->srcDirectory."/".$command->core->mvcControllerDirectory."/"."CommandProcessor.php", $command->object->srcDirectory."/".$command->core->mvcControllerDirectory."/"."CommandProcessor.php");
+}
+
+function getSrcAutoload($command)//TODO: implementer la recherche dans USB si pluggé
+{
+	$srcAutoload = file_get_contents($command->local->rootDirectory."/autoload.php");
+	$srcAutoload = str_replace("__DIR__", "\"".addslashes($command->local->srcDirectory)."\"", $srcAutoload);
+	return $srcAutoload;
+};
+
+function show_help($command)
+{
+	echo "\nAffichage de l'aide.";
+}

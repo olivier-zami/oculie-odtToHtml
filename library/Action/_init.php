@@ -1,0 +1,3 @@
+<?php
+//TODO: charger les fichier necessaires : /Action/*, ...
+?>
