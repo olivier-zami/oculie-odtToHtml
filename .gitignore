@@ -8,7 +8,7 @@
 !/README.md
 !/composer.json
 !/file_upload.php
-!/OdtToXml.php
+!/OdtToHtml.php
 !/ophir.php
 
 #finally allow required core source
