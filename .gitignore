@@ -13,16 +13,80 @@
 
 #finally allow required core source
 !/library
+
 /library/*
-
+!/library/Definition
 !/library/Implementation
+
+/library/Definition/*
+!/library/Definition/Model
+!/library/Definition/Callback.php
+!/library/Definition/Xml.php
+
+/library/Definition/Model/*
+!/library/Definition/Model/Callback.php
+
 /library/Implementation/*
+!/library/Implementation/core
+!/library/Implementation/odtToHtml
 
-!/library/Implementation/Behavioral
-/library/Implementation/Behavioral/*
+/library/Implementation/core/*
+!/library/Implementation/core/Behavioral
+!/library/Implementation/core/Creational
+!/library/Implementation/core/Vectorial
 
-!/library/Implementation/Behavioral/Parser
-/library/Implementation/Behavioral/Parser/*
+/library/Implementation/core/Behavioral/*
+!/library/Implementation/core/Behavioral/entityPropertiesSettingsMethods.php
+!/library/Implementation/core/Behavioral/Parser
 
-!/library/Implementation/Behavioral/Parser/XML.php
+/library/Implementation/core/Behavioral/Parser/*
+!/library/Implementation/core/Behavioral/Parser/Xml.php
 
+/library/Implementation/core/Creational/*
+!/library/Implementation/core/Creational/Builder
+
+/library/Implementation/core/Creational/Builder/*
+!/library/Implementation/core/Creational/Builder/Callback.php
+
+/library/Implementation/core/Vectorial/*
+!/library/Implementation/core/Vectorial/Entity
+!/library/Implementation/core/Vectorial/Resource
+!/library/Implementation/core/Vectorial/Callback.php
+
+/library/Implementation/core/Vectorial/Entity/*
+!/library/Implementation/core/Vectorial/Entity/XmlNode.php
+!/library/Implementation/core/Vectorial/Entity/Document.php
+
+/library/Implementation/core/Vectorial/Resource/*
+!/library/Implementation/core/Vectorial/Resource/OpenDataText.php
+
+#next line are required for local version autoload.php
+
+#/library/Implementation/odtToHtml*
+#!/library/Implementation/odtToHtml/Behavioral
+#!/library/Implementation/odtToHtml/Creational
+
+#/library/Implementation/odtToHtml/Behavioral/*
+#!/library/Implementation/odtToHtml/Behavioral/Checker
+
+#/library/Implementation/odtToHtml/Behavioral/Checker/*
+#!/library/Implementation/odtToHtml/Behavioral/Checker/OpenDocument
+
+#/library/Implementation/odtToHtml/Behavioral/Checker/OpenDocument/*
+#!/library/Implementation/odtToHtml/Behavioral/Checker/OpenDocument/Text.php
+
+#/library/Implementation/odtToHtml/Creational/*
+#!/library/Implementation/odtToHtml/Creational/Builder
+
+#/library/Implementation/odtToHtml/Creational/Builder/*
+#!/library/Implementation/odtToHtml/Creational/Builder/Entity
+#!/library/Implementation/odtToHtml/Creational/Builder/Resource
+
+#/library/Implementation/odtToHtml/Creational/Builder/Entity/*
+#!/library/Implementation/odtToHtml/Creational/Builder/Entity/Document
+
+#/library/Implementation/odtToHtml/Creational/Builder/Entity/Document/*
+#!/library/Implementation/odtToHtml/Creational/Builder/Entity/Document/Html.php
+
+#/library/Implementation/odtToHtml/Creational/Builder/Resource/*
+#!/library/Implementation/odtToHtml/Creational/Builder/Resource/OpenDataText.php

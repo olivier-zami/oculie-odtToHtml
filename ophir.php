@@ -3,8 +3,8 @@
  * @file
  * ODT to HTML conversion functions
  *
- * Two functions are defined here : the first extracts the contents as XmlNode from
- * the ODT file. The second parses the XmlNode to produce HTML.
+ * Two functions are defined here : the first extracts the contents as Text from
+ * the ODT file. The second parses the Text to produce HTML.
  */
 
 /* Configuration.
@@ -60,7 +60,7 @@ function ophir_error($error){
 }
 
 /*
- * Function that parses the XmlNode and outputs HTML. If $xml is not provided,
+ * Function that parses the Text and outputs HTML. If $xml is not provided,
  * extract content.xml from $odt_file
  */
 function odt2html($odt_file, $xml_string=NULL) {
@@ -134,7 +134,7 @@ function odt2html($odt_file, $xml_string=NULL) {
                   $html .= "</" . $HTML_tag . ">";
               }
             }
-          } while ($xml->name !== $element["name"] && $element); //Close every opened tags. This should also handle malformed XmlNode files
+          } while ($xml->name !== $element["name"] && $element); //Close every opened tags. This should also handle malformed Text files
           continue;
     }
     elseif (in_array($xml->nodeType,

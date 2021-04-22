@@ -1,7 +1,9 @@
 <?php
 namespace Oculie;
 
+use Oculie\OdtToHtml\Builder\Entity\Document\Html as HtmlBuilder;
 use Oculie\Core\Definition\Xml as XmlDefinition;
+use Oculie\Core\Builder\Callback as ActionBuilder;
 
 class OdtToHtml
 {
@@ -55,236 +57,76 @@ class OdtToHtml
             $content = $odtDocument->get("content.xml");
         }
 
-        if(!isset(self::$parser))self::$parser = new \Oculie\Core\Parser\Xml();
-
-
-        $visitor = new class($odtDocument){public $html = ""; public $doc=[];
-        	public function __construct($doc){
-        		foreach($doc->getList() as $file)
-				{
-					if(strstr($file,"Pictures"))
-					{
-						$this->doc[$file] = $doc->get($file);
-					}
-				}
-			}};
-
-		self::$parser->setVisitor($visitor);
+        if(!isset(self::$parser))self::$parser = new \Oculie\Core\Parser\Xml();//TODO: etendre la classe avec le trait setEventAction (interface onEvent()->execute() comme technique alternative)
+		self::$htmlBuilder = HtmlBuilder::create();
+		self::$htmlBuilder->setOdtDocument($odtDocument);
 
 		self::$parser->setEventAction(
-			function(){
-				$node = func_get_arg(0);
-				return $node->type==XmlDefinition::OPEN_TAG&&$node->name=="office:document-content";
-			},
-			function(){
-				$node = func_get_arg(0);
-				$v = func_get_arg(1);
-				$v->html.="<html>\n\t<head>";
-			}
+			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isDocumentStart"]),
+			ActionBuilder::create([self::$htmlBuilder, "startDocument"])
 		);
 
 		self::$parser->setEventAction(
-			function()
-			{
-				$node = func_get_arg(0);
-				return $node->type==XmlDefinition::CLOSE_TAG&&$node->name=="office:document-content";
-			},
-			function(){
-				$node = func_get_arg(0);
-				$v = func_get_arg(1);
-				$v->html.="\n</html>";
-			}
+			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isDocumentEnd"]),
+			ActionBuilder::create([self::$htmlBuilder, "endDocument"])
 		);
 
 		self::$parser->setEventAction(
-			function()
-			{
-				$node = func_get_arg(0);
-				return $node->type==XmlDefinition::OPEN_TAG&&$node->name=="office:body";
-			},
-			function(){
-				$node = func_get_arg(0);
-				$v = func_get_arg(1);
-				$v->html.="\n\t</head>\n\t<body>";
-			}
+			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementAnchorOpenTag"]),
+			ActionBuilder::create([self::$htmlBuilder, "addElementAnchorOpenTag"])
 		);
 
 		self::$parser->setEventAction(
-			function()
-			{
-				$node = func_get_arg(0);
-				return $node->type==XmlDefinition::CLOSE_TAG&&$node->name=="office:body";
-			},
-			function(){
-				$node = func_get_arg(0);
-				$v = func_get_arg(1);
-				$v->html.="\n\t</body>";
-			}
+			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementAnchorCloseTag"]),
+			ActionBuilder::create([self::$htmlBuilder, "closeElement"])
 		);
 
 		self::$parser->setEventAction(
-			function()
-			{
-				$node = func_get_arg(0);
-				return $node->type==XmlDefinition::OPEN_TAG_START&&$node->name=="text:h";
-			},
-			function(){
-				$node = func_get_arg(0);
-				$v = func_get_arg(1);
-				$v->html.="\n\t<h";
-			}
+			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementBodyOpenTag"]),
+			ActionBuilder::create([self::$htmlBuilder, "addElementBodyOpenTag"])
 		);
 
 		self::$parser->setEventAction(
-			function()
-			{
-				$node = func_get_arg(0);
-				return $node->type==XmlDefinition::OPEN_TAG_END&&$node->name=="text:h";
-			},
-			function(){
-				$node = func_get_arg(0);
-				$v = func_get_arg(1);
-				$v->html.= (isset($node->attribute["text:outline-level"])?($node->attribute["text:outline-level"]>6?6:$node->attribute["text:outline-level"]):"").">";
-			}
+			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementBodyCloseTag"]),
+			ActionBuilder::create([self::$htmlBuilder, "closeElement"])
 		);
 
 		self::$parser->setEventAction(
-			function()
-			{
-				$node = func_get_arg(0);
-				return $node->type==XmlDefinition::CLOSE_TAG&&$node->name=="text:h";
-			},
-			function(){
-				$node = func_get_arg(0);
-				$v = func_get_arg(1);
-				$v->html.="</h".(isset($node->attribute["text:outline-level"])?($node->attribute["text:outline-level"]>6?6:$node->attribute["text:outline-level"]):"").">";
-			}
-		);
-
-		/*
-		 * tag : a
-		 */
-
-		self::$parser->setEventAction(
-			function()
-			{
-				$node = func_get_arg(0);
-				return $node->type==XmlDefinition::OPEN_TAG_START&&$node->name=="text:a";
-			},
-			function(){
-				$node = func_get_arg(0);
-				$v = func_get_arg(1);
-				$v->html.="\n\t<a";
-			}
+			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementHeadingOpenTag"]),
+			ActionBuilder::create([self::$htmlBuilder, "addElementHeadingOpenTag"])
 		);
 
 		self::$parser->setEventAction(
-			function()
-			{
-				$node = func_get_arg(0);
-				return $node->type==XmlDefinition::OPEN_TAG_END&&$node->name=="text:a";
-			},
-			function(){
-				$node = func_get_arg(0);
-				$v = func_get_arg(1);
-				$v->html.= " ".(isset($node->attribute["xlink:href"])?"href=\"".$node->attribute["xlink:href"]."\"":"").">";
-			}
+			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementHeadingCloseTag"]),
+			ActionBuilder::create([self::$htmlBuilder, "closeElement"])
 		);
 
 		self::$parser->setEventAction(
-			function()
-			{
-				$node = func_get_arg(0);
-				return $node->type==XmlDefinition::CLOSE_TAG&&$node->name=="text:a";
-			},
-			function(){
-				$node = func_get_arg(0);
-				$v = func_get_arg(1);
-				$v->html.= "</a>";
-			}
-		);
+			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementImageEmptyTag"]),
+			ActionBuilder::create([self::$htmlBuilder, "addElementImageEmptyTag"]));
 
-		/*
-		 * tag : img
-		 */
-
-		self::$parser->setEventAction(
-			function()
-			{
-				$node = func_get_arg(0);
-				return $node->type==XmlDefinition::EMPTY_TAG_START&&$node->name=="draw:image";
-			},
-			function(){
-				$node = func_get_arg(0);
-				$v = func_get_arg(1);
-				$v->html.="\n\t<img";
-			}
-		);
-
-		self::$parser->setEventAction(
-			function()
-			{
-				$node = func_get_arg(0);
-				return $node->type==XmlDefinition::EMPTY_TAG_END&&$node->name=="draw:image";
-			},
-			function(){
-				$node = func_get_arg(0);
-				$v = func_get_arg(1);
-				$docPath = "";
-				if(strstr($node->attribute["xlink:href"], "ObjectReplacements"))//TODO: find a way to handle ObjectReplacements file (VCLMTF format)
-				{
-					$src = "";
-				}
-				else
-				{
-					$src = 'data:image;base64,'.base64_encode($v->doc[$node->attribute["xlink:href"]]);
-				}
-				$v->html.=(isset($node->attribute["xlink:href"])?" src=\"".$src."\"":"")."/>";
-			}
-		);
-
-		/*
-		 * tag : p
-		 */
 
         self::$parser->setEventAction(
-        	function(){
-        		$node = func_get_arg(0);
-        		return $node->type==XmlDefinition::OPEN_TAG&&$node->name=="text:p";
-        	},
-			function(){
-				$node = func_get_arg(0);
-				$v = func_get_arg(1);
-				$v->html.= "\n".str_repeat("\t", $node->depth-1)."<p>";
-        });
+			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementParagraphOpenTag"]),
+			ActionBuilder::create([self::$htmlBuilder, "addElementParagraphOpenTag"]));
 
 		self::$parser->setEventAction(
-			function(){
-				$node = func_get_arg(0);
-				return $node->type==XmlDefinition::CLOSE_TAG&&$node->name=="text:p";
-			},
-			function(){
-				$node = func_get_arg(0);
-				$v = func_get_arg(1);
-				$v->html.="</p>";
-			});
+			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementParagraphCloseTag"]),
+			ActionBuilder::create([self::$htmlBuilder, "closeElement"]));
+
 
 		self::$parser->setEventAction(
-			function(){
-				$node = func_get_arg(0);
-				return $node->type==XmlDefinition::TEXT;
-			},
-			function(){
-				$node = func_get_arg(0);
-				$v = func_get_arg(1);
-				$v->html.=$node->value;
-			});
+			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isText"]),
+			ActionBuilder::create([self::$htmlBuilder, "addText"])
+		);
 
         self::$parser->parse($content);
     }
-    public static function getHtml()
+
+	public static function getHtml()
 	{
-		return self::$parser->getVisitor()->html;
+		$htmlDocument = self::$htmlBuilder->getInstance();
+		return $htmlDocument->getContent();
 	}
 
     /*
@@ -292,4 +134,5 @@ class OdtToHtml
      */
 
     private static $parser;
+    private static $htmlBuilder;
 }
