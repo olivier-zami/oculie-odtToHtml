@@ -5,7 +5,7 @@ use Oculie\OdtToHtml\Builder\Entity\Document\Html as HtmlBuilder;
 use Oculie\Core\Definition\Xml as XmlDefinition;
 use Oculie\Core\Builder\Callback as ActionBuilder;
 
-class OdtToHtml
+class OdtToHtml extends \Oculie\Core\Extension
 {
     /* Configuration.
     0 : do not parse, do not print
@@ -103,17 +103,18 @@ class OdtToHtml
 
 		self::$parser->setEventAction(
 			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementImageEmptyTag"]),
-			ActionBuilder::create([self::$htmlBuilder, "addElementImageEmptyTag"]));
-
+			ActionBuilder::create([self::$htmlBuilder, "addElementImageEmptyTag"])
+		);
 
         self::$parser->setEventAction(
 			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementParagraphOpenTag"]),
-			ActionBuilder::create([self::$htmlBuilder, "addElementParagraphOpenTag"]));
+			ActionBuilder::create([self::$htmlBuilder, "addElementParagraphOpenTag"])
+		);
 
 		self::$parser->setEventAction(
 			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementParagraphCloseTag"]),
-			ActionBuilder::create([self::$htmlBuilder, "closeElement"]));
-
+			ActionBuilder::create([self::$htmlBuilder, "closeElement"])
+		);
 
 		self::$parser->setEventAction(
 			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isText"]),
@@ -133,6 +134,7 @@ class OdtToHtml
      * Routines and Properties
      */
 
+	const NAME = "OdtToXml";
     private static $parser;
     private static $htmlBuilder;
 }
