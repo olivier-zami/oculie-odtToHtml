@@ -5,6 +5,7 @@
 !/.gitignore
 !/LICENSE
 !/AUTHORS
+!/autoload.php
 !/README.md
 !/composer.json
 !/file_upload.php

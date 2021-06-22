@@ -1,9 +1,9 @@
 # Ophir.php
 ## PHP script that converts ODT to HTML
-ophir.php is a lightweight script that parses an <b>open document</b> file and outputs a <b><i>simple</i> HTML</b> file, with very few tags (contrarily to most other tools that do the same thing).
+This project is cloned from ophir.php. Ophir is a lightweight script that parses an <b>open document</b> file and outputs a <b><i>simple</i> HTML</b> file, with very few tags (contrarily to most other tools that do the same thing).
 
 ## Features
-Currently, the script can convert the following:
+Currently, the script can convert the following: (might be disable for now due to refactoring)
  - bold (```<strong>``` tag)
  - italic (```<i>``` tag)
  - underline (```<u>``` tag)
@@ -26,6 +26,9 @@ This script requires libzip and XMLReader, that are usually installed by default
 If you meet these requirements, just put ophir.php on your server, and use it like that:
 
 ```php
+include "autoload.php";//include autoload.php (or generate your own with composer for example) to deal with the required classes
+
+/* this code is now obsolete but i keep it as comment until all features are rewrited 
 require("ophir.php");
 
 $OPHIR_CONF["footnote"] = 0; //Do not import footnotes
@@ -38,7 +41,12 @@ $OPHIR_CONF["link"] = 1; //Import links, but prints them as simple text (only ex
 "header", "quote", "list", "table", "footnote", "link", "image", "note", and "annotation"
 */
 
-echo odt2html("/path/to/file.odt");
+$odtDocument = \Oculie\OdtToHtml\Builder\Resource\OpenDataText::create()
+	->setUri("/path/to/file.odt")
+	->getInstance();
+
+Oculie\OdtToHtml::parse($odtDocument);
+echo Oculie\OdtToHtml::getHtml();
 ```
 
 
