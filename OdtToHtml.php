@@ -2,10 +2,10 @@
 namespace Oculie;
 
 use Oculie\OdtToHtml\Builder\Entity\Document\Html as HtmlBuilder;
-use Oculie\Core\Definition\Xml as XmlDefinition;
+use Oculie\Core\Definition\Xml as XML_DEFINITION;
 use Oculie\Core\Builder\Callback as ActionBuilder;
 
-class OdtToHtml
+class OdtToHtml extends \Oculie\Core\Extension
 {
     /* Configuration.
     0 : do not parse, do not print
@@ -61,63 +61,50 @@ class OdtToHtml
 		self::$htmlBuilder = HtmlBuilder::create();
 		self::$htmlBuilder->setOdtDocument($odtDocument);
 
+		self::readDocumentAsHtmlDocument();
+		self::parseBody();
+		self::parseList();
+		self::parseListItem();
+		self::readListItemContentAsSpanText();
+		self::readTextAsText();
+		self::castDrawImageToImage();
+		self::castTextAnchorToAnchor();
+		self::castTextHeadingToHeading();
+		self::castTextSectionToSection();
+		self::castTextParagraphToParagraph();
+
+
+		/*
+		 * test
+		 */
 		self::$parser->setEventAction(
-			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isDocumentStart"]),
-			ActionBuilder::create([self::$htmlBuilder, "startDocument"])
-		);
-
-		self::$parser->setEventAction(
-			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isDocumentEnd"]),
-			ActionBuilder::create([self::$htmlBuilder, "endDocument"])
-		);
-
-		self::$parser->setEventAction(
-			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementAnchorOpenTag"]),
-			ActionBuilder::create([self::$htmlBuilder, "addElementAnchorOpenTag"])
-		);
-
-		self::$parser->setEventAction(
-			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementAnchorCloseTag"]),
-			ActionBuilder::create([self::$htmlBuilder, "closeElement"])
-		);
-
-		self::$parser->setEventAction(
-			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementBodyOpenTag"]),
-			ActionBuilder::create([self::$htmlBuilder, "addElementBodyOpenTag"])
-		);
-
-		self::$parser->setEventAction(
-			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementBodyCloseTag"]),
-			ActionBuilder::create([self::$htmlBuilder, "closeElement"])
-		);
-
-		self::$parser->setEventAction(
-			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementHeadingOpenTag"]),
-			ActionBuilder::create([self::$htmlBuilder, "addElementHeadingOpenTag"])
-		);
-
-		self::$parser->setEventAction(
-			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementHeadingCloseTag"]),
-			ActionBuilder::create([self::$htmlBuilder, "closeElement"])
-		);
-
-		self::$parser->setEventAction(
-			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementImageEmptyTag"]),
-			ActionBuilder::create([self::$htmlBuilder, "addElementImageEmptyTag"]));
-
-
-        self::$parser->setEventAction(
-			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementParagraphOpenTag"]),
-			ActionBuilder::create([self::$htmlBuilder, "addElementParagraphOpenTag"]));
-
-		self::$parser->setEventAction(
-			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementParagraphCloseTag"]),
-			ActionBuilder::create([self::$htmlBuilder, "closeElement"]));
-
-
-		self::$parser->setEventAction(
-			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isText"]),
-			ActionBuilder::create([self::$htmlBuilder, "addText"])
+			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "test"]),
+			function(){
+				$node = func_get_arg(0);
+				/*
+				echo "<pre>\n".str_repeat("\t", $node->depth);
+				switch($node->tagType)
+				{
+					case 1:
+						echo htmlentities("<".$node->name.">");
+						break;
+					case 2:
+						echo htmlentities("</".$node->name.">");
+						break;
+					case 3:
+						echo htmlentities("<".$node->name."/>");
+						break;
+				}
+				echo "</pre>";
+				*/
+				/*
+				echo "<br/>".
+				" <span style=\"color: #00F\">nodeName:</span>".$node->name.
+				" <span style=\"color: #00F\">nodeType:</span>".XML_DEFINITION::NODE_TYPE_NAME[$node->type].
+				" <span style=\"color: #00F\">tagType:</span>".XML_DEFINITION::TAG_TYPE_NAME[$node->tagType]."_ELEMENT".
+				" <span style=\"color: #00F\">path:</span> ".$node->path;
+				*/
+				}
 		);
 
         self::$parser->parse($content);
@@ -133,6 +120,140 @@ class OdtToHtml
      * Routines and Properties
      */
 
+	protected static function readDocumentAsHtmlDocument()
+	{
+		self::$parser->setEventAction(
+			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isDocumentStart"]),
+			ActionBuilder::create([self::$htmlBuilder, "startDocument"])
+		);
+
+		self::$parser->setEventAction(
+			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isDocumentEnd"]),
+			ActionBuilder::create([self::$htmlBuilder, "endDocument"])
+		);
+	}
+
+	protected static function parseBody()
+	{
+		self::$parser->setEventAction(
+			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementBodyOpenTag"]),
+			ActionBuilder::create([self::$htmlBuilder, "addElementBodyOpenTag"])
+		);
+
+		self::$parser->setEventAction(
+			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementBodyCloseTag"]),
+			ActionBuilder::create([self::$htmlBuilder, "closeElement"])
+		);
+	}
+
+	protected static function parseList()
+	{
+		self::$parser->setEventAction(
+			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementListOpenTag"]),
+			ActionBuilder::create([self::$htmlBuilder, "addElementUnorderedListOpenTag"])
+		);
+
+		self::$parser->setEventAction(
+			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementListCloseTag"]),
+			ActionBuilder::create([self::$htmlBuilder, "closeElement"])
+		);
+	}
+
+	protected static function parseListItem()
+	{
+		self::$parser->setEventAction(
+			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementListItemOpenTag"]),
+			ActionBuilder::create([self::$htmlBuilder, "addElementListItemOpenTag"])
+		);
+
+		self::$parser->setEventAction(
+			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementListItemCloseTag"]),
+			ActionBuilder::create([self::$htmlBuilder, "closeElement"])
+		);
+	}
+
+	protected static function readListItemContentAsSpanText()
+	{
+		self::$parser->setEventAction(
+			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementSpanLiOpenTag"]),
+			ActionBuilder::create([self::$htmlBuilder, "addElementSpanLiOpenTag"])
+		);
+
+		self::$parser->setEventAction(
+			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementSpanLiCloseTag"]),
+			ActionBuilder::create([self::$htmlBuilder, "closeElement"])
+		);
+	}
+
+	protected static function readTextAsText()
+	{
+		self::$parser->setEventAction(
+			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isText"]),
+			ActionBuilder::create([self::$htmlBuilder, "addText"])
+		);
+	}
+
+	protected static function castDrawImageToImage()
+	{
+		self::$parser->setEventAction(
+			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementImageEmptyTag"]),
+			ActionBuilder::create([self::$htmlBuilder, "addElementImageEmptyTag"])
+		);
+	}
+
+	protected static function castTextAnchorToAnchor()
+	{
+		self::$parser->setEventAction(
+			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementAnchorOpenTag"]),
+			ActionBuilder::create([self::$htmlBuilder, "addElementAnchorOpenTag"])
+		);
+
+		self::$parser->setEventAction(
+			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementAnchorCloseTag"]),
+			ActionBuilder::create([self::$htmlBuilder, "closeElement"])
+		);
+	}
+
+	protected static function castTextHeadingToHeading()
+	{
+		self::$parser->setEventAction(
+			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementHeadingOpenTag"]),
+			ActionBuilder::create([self::$htmlBuilder, "addElementHeadingOpenTag"])
+		);
+
+		self::$parser->setEventAction(
+			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementHeadingCloseTag"]),
+			ActionBuilder::create([self::$htmlBuilder, "closeElement"])
+		);
+	}
+
+	protected static function castTextSectionToSection()
+	{
+		self::$parser->setEventAction(
+			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementSectionOpenTag"]),
+			ActionBuilder::create([self::$htmlBuilder, "addElementSectionOpenTag"])
+		);
+
+		self::$parser->setEventAction(
+			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementSectionCloseTag"]),
+			ActionBuilder::create([self::$htmlBuilder, "closeElement"])
+		);
+	}
+
+	protected static function castTextParagraphToParagraph()
+	{
+		self::$parser->setEventAction(
+			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementParagraphOpenTag"]),
+			ActionBuilder::create([self::$htmlBuilder, "addElementParagraphOpenTag"])
+		);
+
+		self::$parser->setEventAction(
+			ActionBuilder::create([\Oculie\OdtToHtml\Checker\OpenDocument\Text::class, "isElementParagraphCloseTag"]),
+			ActionBuilder::create([self::$htmlBuilder, "closeElement"])
+		);
+	}
+
+	const NAME = "OdtToXml";
     private static $parser;
     private static $htmlBuilder;
 }

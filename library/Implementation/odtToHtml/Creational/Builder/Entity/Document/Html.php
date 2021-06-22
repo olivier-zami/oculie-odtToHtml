@@ -32,6 +32,9 @@ class Html
 		return $instance;
 	}
 
+	/*
+	 * Document <html>,<head>
+	 */
 	public function startDocument($node)
 	{
 		$this->xmlWriter->startDocument("1.0");
@@ -45,6 +48,9 @@ class Html
 		$this->xmlWriter->endDocument();
 	}
 
+	/*
+	 * tag : <a>
+	 */
 	public function addElementAnchorOpenTag($node)
 	{
 		$this->xmlWriter->startElement("a");
@@ -56,17 +62,26 @@ class Html
 		}
 	}
 
+	/*
+	 * tag : <body>
+	 */
 	public function addElementBodyOpenTag($node)
 	{
 		$this->xmlWriter->endElement();
 		$this->xmlWriter->startElement("body");
 	}
 
+	/*
+	 * tag : <h>
+	 */
 	public function addElementHeadingOpenTag($node)
 	{
 		$this->xmlWriter->startElement("h".(isset($node->attribute["text:outline-level"])?($node->attribute["text:outline-level"]>6?6:$node->attribute["text:outline-level"]):""));
 	}
 
+	/*
+	 * tag : <img>
+	 */
 	public function addElementImageEmptyTag($node)
 	{
 		$this->xmlWriter->startElement("img");
@@ -84,19 +99,60 @@ class Html
 		$this->xmlWriter->endElement();
 	}
 
+	/*
+	 * tag : <li>
+	 */
+	public function addElementListItemOpenTag($node)
+	{
+		$this->xmlWriter->startElement("li");
+	}
+
+	/*
+	 * tag : <p>
+	 */
 	public function addElementParagraphOpenTag($node)
 	{
 		$this->xmlWriter->startElement("p");
 	}
 
-	public function addText($node)
+	/*
+	 * tag : <section>
+	 */
+	public function addElementSectionOpenTag($node)
 	{
-		$this->xmlWriter->text($node->value);
+		$this->xmlWriter->startElement("section");
 	}
 
+	/*
+	 * tag : <span>
+	 */
+	public function addElementSpanLiOpenTag($node)
+	{
+		$this->xmlWriter->startElement("span");
+	}
+
+	/*
+	 * tag : <ul>
+	 */
+	public function addElementUnorderedListOpenTag($node)
+	{
+		$this->xmlWriter->startElement("ul");
+	}
+
+	/*
+	 * tag : </xxx>
+	 */
 	public function closeElement($node)
 	{
 		$this->xmlWriter->endElement();
+	}
+
+	/*
+	 * text
+	 */
+	public function addText($node)
+	{
+		$this->xmlWriter->text($node->value);
 	}
 
 	/*

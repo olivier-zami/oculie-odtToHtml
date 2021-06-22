@@ -1,67 +1,156 @@
 <?php
 namespace Oculie\OdtToHtml\Checker\OpenDocument;
 
-use Oculie\Core\Definition\Xml as XmlDefinition;
+use Oculie\Core\Definition\Xml as XML_DEFINITION;
 
 class Text
 {
-	public static function isDocumentStart($node)
+	/*
+	 * Document
+	 */
+	public static function isDocumentStart($node): bool
 	{
-		return $node->type==XmlDefinition::OPEN_TAG&&$node->name=="office:document-content";
+		return $node->type==\XMLReader::ELEMENT&&$node->name=="office:document-content"&&$node->tagType==XML_DEFINITION::TAG_TYPE["OPEN"];
 	}
 
-	public static function isDocumentEnd($node)
+	public static function isDocumentEnd($node): bool
 	{
-		return $node->type==XmlDefinition::CLOSE_TAG&&$node->name=="office:document-content";
+		return $node->type==\XMLReader::END_ELEMENT&&$node->name=="office:document-content"&&$node->tagType==XML_DEFINITION::TAG_TYPE["CLOSE"];
 	}
 
-	public static function isElementAnchorOpenTag($node)
+	/*
+	 * tag : <a>
+	 */
+	public static function isElementAnchorOpenTag($node): bool
 	{
-		return $node->type==XmlDefinition::OPEN_TAG_END&&$node->name=="text:a";
+		return $node->type==\XMLReader::ELEMENT&&$node->tagType==XML_DEFINITION::TAG_TYPE["OPEN"]&&$node->name=="text:a";
 	}
 
-	public static function isElementAnchorCloseTag($node)
+	public static function isElementAnchorCloseTag($node): bool
 	{
-		return $node->type==XmlDefinition::CLOSE_TAG&&$node->name=="text:a";
+		return $node->type==\XMLReader::END_ELEMENT&&$node->tagType==XML_DEFINITION::TAG_TYPE["CLOSE"]&&$node->name=="text:a";
 	}
 
-	public static function isElementBodyOpenTag($node)
+	/*
+	 * tag : <body>
+	 */
+	public static function isElementBodyOpenTag($node): bool
 	{
-		return $node->type==XmlDefinition::OPEN_TAG&&$node->name=="office:body";
+		return $node->type==\XMLReader::ELEMENT&&$node->tagType==XML_DEFINITION::TAG_TYPE["OPEN"]&&$node->name=="office:body";
 	}
 
-	public static function isElementBodyCloseTag($node)
+	public static function isElementBodyCloseTag($node): bool
 	{
-		return $node->type==XmlDefinition::CLOSE_TAG&&$node->name=="office:body";
+		return $node->type==\XMLReader::END_ELEMENT&&$node->tagType==XML_DEFINITION::TAG_TYPE["CLOSE"]&&$node->name=="office:body";
 	}
 
-	public static function isElementImageEmptyTag($node)
+	/*
+	 * tag : <h>
+	 */
+	public static function isElementHeadingOpenTag($node): bool
 	{
-		return $node->type==XmlDefinition::EMPTY_TAG_END&&$node->name=="draw:image";
+		return $node->type==\XMLReader::ELEMENT&&$node->tagType==XML_DEFINITION::TAG_TYPE["OPEN"]&&$node->name=="text:h";
 	}
 
-	public static function isElementParagraphOpenTag($node)
+	public static function isElementHeadingCloseTag($node): bool
 	{
-		return $node->type==XmlDefinition::OPEN_TAG&&$node->name=="text:p";
+		return $node->type==\XMLReader::END_ELEMENT&&$node->tagType==XML_DEFINITION::TAG_TYPE["CLOSE"]&&$node->name=="text:h";
 	}
 
-	public static function isElementParagraphCloseTag($node)
+	/*
+	 * tag : <img>
+	 */
+	public static function isElementImageEmptyTag($node): bool
 	{
-		return $node->type==XmlDefinition::CLOSE_TAG&&$node->name=="text:p";
+		return $node->type==\XMLReader::ELEMENT&&$node->tagType==XML_DEFINITION::TAG_TYPE["AUTO_CLOSE"]&&$node->name=="draw:image";
 	}
 
-	public static function isElementHeadingOpenTag($node)
+	/*
+	 * tag : <li>
+	 */
+	public static function isElementListItemOpenTag($node): bool
 	{
-		return $node->type==XmlDefinition::OPEN_TAG_END&&$node->name=="text:h";
+		return $node->type==\XMLReader::ELEMENT&&$node->tagType==XML_DEFINITION::TAG_TYPE["OPEN"]&&$node->name=="text:list-item"&&$node->parentName=="text:list";
 	}
 
-	public static function isElementHeadingCloseTag($node)
+	public static function isElementListItemCloseTag($node): bool
 	{
-		return $node->type==XmlDefinition::CLOSE_TAG&&$node->name=="text:h";
+		return $node->type==\XMLReader::END_ELEMENT&&$node->tagType==XML_DEFINITION::TAG_TYPE["CLOSE"]&&$node->name=="text:list-item"&&$node->parentName=="text:list";
 	}
 
-	public static function isText($node)
+	/*
+	 * tag : <p>
+	 */
+	public static function isElementParagraphOpenTag($node): bool
 	{
-		return $node->type==XmlDefinition::TEXT;
+		return $node->type==\XMLReader::ELEMENT&&$node->tagType==XML_DEFINITION::TAG_TYPE["OPEN"]&&$node->name==="text:p"&&!in_array($node->parentName, [
+			"text:list-item"
+		]);
+	}
+
+	public static function isElementParagraphCloseTag($node): bool
+	{
+		return $node->type==\XMLReader::END_ELEMENT&&$node->tagType==XML_DEFINITION::TAG_TYPE["CLOSE"]&&$node->name=="text:p"&&!in_array($node->parentName, [
+			"text:list-item"
+		]);
+	}
+
+	/*
+	 * tag : <section>
+	 */
+	public static function isElementSectionOpenTag($node): bool
+	{
+		return $node->type==\XMLReader::ELEMENT&&$node->tagType==XML_DEFINITION::TAG_TYPE["OPEN"]&&$node->name=="text:section";
+	}
+
+	public static function isElementSectionCloseTag($node): bool
+	{
+		return $node->type==\XMLReader::END_ELEMENT&&$node->tagType==XML_DEFINITION::TAG_TYPE["CLOSE"]&&$node->name=="text:section";
+	}
+
+	/*
+	 * tag : <span>
+	 */
+	public static function isElementSpanLiOpenTag($node): bool
+	{
+		return $node->type==\XMLReader::ELEMENT&&$node->name=="text:p"&&/*$node->tagType==XML_DEFINITION::TAG_TYPE["OPEN"]&&*/$node->parentName=="text:list-item";
+	}
+
+	public static function isElementSpanLiCloseTag($node): bool
+	{
+		return $node->type==\XMLReader::END_ELEMENT&&$node->name=="text:p"&&$node->tagType==XML_DEFINITION::TAG_TYPE["CLOSE"]&&$node->parentName=="text:list-item";
+	}
+
+	/*
+	 * tag : <ul>
+	 */
+	public static function isElementListOpenTag($node): bool
+	{
+		return $node->type==\XMLReader::ELEMENT&&$node->tagType==XML_DEFINITION::TAG_TYPE["OPEN"]&&$node->name=="text:list";
+	}
+
+	public static function isElementListCloseTag($node): bool
+	{
+		return $node->type==\XMLReader::END_ELEMENT&&$node->tagType==XML_DEFINITION::TAG_TYPE["CLOSE"]&&$node->name=="text:list";
+	}
+
+	/*
+	 * text
+	 */
+	public static function isText($node): bool
+	{
+		return $node->type==\XMLReader::TEXT;
+	}
+
+	/*
+	 * test ...
+	 */
+	public static function test($node): bool
+	{
+		return $node->type==\XMLReader::ELEMENT||$node->type==\XMLReader::END_ELEMENT;
+		//return $node->name==="text:p";
+		//return $node->name=="text:p"/*&&$node->tagType==XML_DEFINITION::TAG_TYPE["OPEN"]*/&&$node->parentName=="text:list-item";
+		//return $node->type==\XMLReader::ELEMENT&&$node->name=="text:p"&&$node->tagType==XML_DEFINITION::TAG_TYPE["OPEN"]&&$node->parentName=="text:list-item";
+		//return $node->type==\XMLReader::END_ELEMENT&&$node->name=="text:p"&&$node->tagType==XML_DEFINITION::TAG_TYPE["CLOSE"]&&$node->parentName=="text:list-item";
 	}
 }
