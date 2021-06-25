@@ -21,8 +21,12 @@
 
 /library/Definition/*
 !/library/Definition/Model
+!/library/Definition/Entity
 !/library/Definition/Callback.php
 !/library/Definition/Xml.php
+
+/library/Definition/Entity/*
+!/library/Definition/Entity/Callback.php
 
 /library/Definition/Model/*
 !/library/Definition/Model/Callback.php
@@ -52,7 +56,6 @@
 /library/Implementation/core/Vectorial/*
 !/library/Implementation/core/Vectorial/Entity
 !/library/Implementation/core/Vectorial/Resource
-!/library/Implementation/core/Vectorial/Callback.php
 
 /library/Implementation/core/Vectorial/Entity/*
 !/library/Implementation/core/Vectorial/Entity/XmlNode.php

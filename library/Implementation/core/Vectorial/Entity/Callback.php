@@ -1,7 +1,7 @@
 <?php
 namespace Oculie\Core\Data\Entity;
 
-class Callback extends \Oculie\Core\Data\Callback
+class Callback extends \Oculie\Definition\Entity\Callback
 {
     /*
      * Interface
